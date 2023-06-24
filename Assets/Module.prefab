@@ -2408,7 +2408,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1238600493244778}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.0007, y: 0.0164, z: 0.006}
+  m_LocalPosition: {x: 0, y: 0.0164, z: 0.006}
   m_LocalScale: {x: 0.9434972, y: 0.9434972, z: 0.9434972}
   m_Children:
   - {fileID: 4317139730888230}
@@ -6756,7 +6756,7 @@ TextMesh:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1204780352461638}
-  m_Text: LETTERS
+  m_Text: Utilities
   m_OffsetZ: 0
   m_CharacterSize: 0.02
   m_LineSpacing: 1
@@ -6942,9 +6942,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10d419507ea368640bdb7873cea76372, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Bomb: {fileID: 114539612475915120}
-  Audio: {fileID: 114055427323874342}
-  Module: {fileID: 114602882045815748}
   _letters:
   - {fileID: 114607632439328170}
   - {fileID: 114463890476366804}

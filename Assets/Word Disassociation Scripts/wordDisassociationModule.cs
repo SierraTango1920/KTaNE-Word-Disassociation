@@ -6,9 +6,9 @@ using KModkit;
 using Rnd = UnityEngine.Random;
 
 public class wordDisassociationModule : MonoBehaviour {
-	[HideInInspector] public KMBombInfo Bomb;
-    [HideInInspector] public KMAudio Audio;
-	[HideInInspector] public KMBombModule Module;
+	[SerializeField] private KMBombInfo Bomb;
+    [SerializeField] private KMAudio Audio;
+	[SerializeField] private KMBombModule Module;
 
 	[SerializeField] private KMSelectable[] _letters;
 	[SerializeField] private KMSelectable _backspace;
@@ -17,84 +17,131 @@ public class wordDisassociationModule : MonoBehaviour {
 
 	private static int _modIdCounter = 1;
 	private int _modId;
-	private bool IsSolved = false;
+	private bool _isSolved = false;
 	private readonly string [][] _lyrics = new string[5][] { 
-    	new string[] { "Enemy","lasagna","Robust","below","wax","Semiautomatic","aqua","Accompany","slacks","Why","coffee","gymnastic","Motorcycle","unibrow","Existential","plastic","extra","nightly","cow","Damn","jettison","goodbye","through","Everything","center","who","Spidery","concubine","Pale","lickitysplit","remorse","Vitamin","after","force","Already","nested","human","wine" },
-    	new string[] { "Flight","Luminary","uprise","Entanglement","broke","Unsophisticated","clockwise","Holiday","way","smoke","Abundant","various","Metaphorically","applause","Underneath","hilarious","oxymoron","claws","Rectangular","awkward","hurt","Million","controvert","Never","undressing","sneer","Blue","therapy","fall","inside","Father","dethrone","applied","Guillotine","apprehensive","engineer" },
-		new string[] { "Prance","omelette","stalking","chimneysweep","Eleven","hatred","earmuff","okay","rathskeller","My","elusive","hula","yellow","sketching","creamy","helium","gentlemanly","communique" },
-		new string[] { "Flouncy","Panicky","redundant","Psychedelic","while","Raisin","terrible","abundant","Polyurethane","smile","Scrumptious","mechanical","Jungle","uncle","wish","Paleobotanical","backwards","licorice","Truth","medical","entertain","Cleverly","porridge","brain","Jellyfish","fingernail","Agnostic","oppressive","wall","Platypus","parasol","Sauntering","sawdust","opera","monorail" },
-		new string[] { "Letter","no","sly","violin","dustbunny","Explode","serenade","why","spoil","play","drip","Skullduggery","freezer","monocle","pelican","Cool","milk","freak","tongue","television","staplegun","Mellow","face","bubblegum","periscope","fight","silly","Elephant","akimbo","paranoia","sever","maybe","Crush","toy","spoon","melt","feather","clear","king","weird","Space","love","domino","reality","apostrophe","Dollar","jade","velocity","meringue","assuming","gentle","mister","Advertisement","suitcase","pining","lobsters","over","murderous","Distraction","flames","imposter","acapella","crouch","about","bionic","Ruby","quickly","antidisestablishmentarianism" }
+    	new string[] { "ENEMY","LASAGNA","ROBUST","BELOW","WAX","SEMIAUTOMATIC","AQUA","ACCOMPANY","SLACKS","WHY","COFFEE","GYMNASTIC","MOTORCYCLE","UNIBROW","EXISTENTIAL","PLASTIC","EXTRA","NIGHTLY","COW","DAMN","JETTISON","GOODBYE","THROUGH","EVERYTHING","CENTER","WHO","SPIDERY","CONCUBINE","PALE","LICKITYSPLIT","REMORSE","VITAMIN","AFTER","FORCE","ALREADY","NESTED","HUMAN","WINE" },
+    	new string[] { "FLIGHT","LUMINARY","UPRISE","ENTANGLEMENT","BROKE","UNSOPHISTICATED","CLOCKWISE","HOLIDAY","WAY","SMOKE","ABUNDANT","VARIOUS","METAPHORICALLY","APPLAUSE","UNDERNEATH","HILARIOUS","OXYMORON","CLAWS","RECTANGULAR","AWKWARD","HURT","MILLION","CONTROVERT","NEVER","UNDRESSING","SNEER","BLUE","THERAPY","FALL","INSIDE","FATHER","DETHRONE","APPLIED","GUILLOTINE","APPREHENSIVE","ENGINEER" },
+		new string[] { "PRANCE","OMELETTE","STALKING","CHIMNEYSWEEP","ELEVEN","HATRED","EARMUFF","OKAY","RATHSKELLER","MY","ELUSIVE","HULA","YELLOW","SKETCHING","CREAMY","HELIUM","GENTLEMANLY","COMMUNIQUE" },
+		new string[] { "FLOUNCY","PANICKY","REDUNDANT","PSYCHEDELIC","WHILE","RAISIN","TERRIBLE","ABUNDANT","POLYURETHANE","SMILE","SCRUMPTIOUS","MECHANICAL","JUNGLE","UNCLE","WISH","PALEOBOTANICAL","BACKWARDS","LICORICE","TRUTH","MEDICAL","ENTERTAIN","CLEVERLY","PORRIDGE","BRAIN","JELLYFISH","FINGERNAIL","AGNOSTIC","OPPRESSIVE","WALL","PLATYPUS","PARASOL","SAUNTERING","SAWDUST","OPERA","MONORAIL" },
+		new string[] { "LETTER","NO","SLY","VIOLIN","DUSTBUNNY","EXPLODE","SERENADE","WHY","SPOIL","PLAY","DRIP","SKULLDUGGERY","FREEZER","MONOCLE","PELICAN","COOL","MILK","FREAK","TONGUE","TELEVISION","STAPLEGUN","MELLOW","FACE","BUBBLEGUM","PERISCOPE","FIGHT","SILLY","ELEPHANT","AKIMBO","PARANOIA","SEVER","MAYBE","CRUSH","TOY","SPOON","MELT","FEATHER","CLEAR","KING","WEIRD","SPACE","LOVE","DOMINO","REALITY","APOSTROPHE","DOLLAR","JADE","VELOCITY","MERINGUE","ASSUMING","GENTLE","MISTER","ADVERTISEMENT","SUITCASE","PINING","LOBSTERS","OVER","MURDEROUS","DISTRACTION","FLAMES","IMPOSTER","ACAPELLA","CROUCH","ABOUT","BIONIC","RUBY","QUICKLY","ANTIDISESTABLISHMENTARIANISM" }
     };
-	private string _solution;
+	private string _generatedSolution;
+	private string[] _possibleSolutions;
 	private readonly char[] _vowels = { 'a','e','i','o','u','y' };
 	private readonly char[] _consonants = { 'b','c','d','f','g','h','j','k','l','m','n','p','q','r','s','t','v','w','x','z' };
+
 	private void Awake() { 
 
 		_modId = _modIdCounter++;
-		
-		Bomb = GetComponent<KMBombInfo>();
-        Audio = GetComponent<KMAudio>();
-        Module = GetComponent<KMBombModule>();
 
 		foreach (KMSelectable letter in _letters) {
 			letter.OnInteract += delegate() { handleLetterPress(letter.name); return false; };
 		}
 		_backspace.OnInteract += delegate() { handleBackspacePress(); return false; };
-		_submit.OnInteract += delegate() { handleSubmit(); return false; };
-		
+		_submit.OnInteract += delegate() { handleSubmitPress(); return false; };
+
 	}
 	private void handleLetterPress(string letter) { 
-		if (IsSolved) { 
-			return; 
-		}
+		if (_isSolved) { return; }
 		_displayText.text += letter;
 	}
 	private void handleBackspacePress() {
+		if (_isSolved) { return; }
 		if (_displayText.text != "") {
 			_displayText.text = _displayText.text.Remove(_displayText.text.Length - 1);
 		}
 	}
-	private void handleSubmit() {
-		if (_displayText.text == _solution) { Module.HandlePass(); }
-		else { Module.HandleStrike(); }
+	private void handleSubmitPress() {
+		if (_isSolved) { return; }
+		if (_possibleSolutions.Contains(_displayText.text)) { Solve(""); }
+		else { Strike($"Submitted {_displayText.text} when expecting {_generatedSolution}."); }
 	}
-	//Debug.Log($"[wordDisassociationModule {_modId}] Ahoy!") 
-
-	// Use this for initialization
+	private void Solve(string message) {
+		Log(message);
+		Module.HandlePass();
+		_isSolved = true;
+	}
+	private void Strike(string reason) {
+		Log(new string[] { "Incorrect answer! Issuing strike.", reason });
+		Module.HandleStrike();
+	}
+	private void Log(string message) {
+		Debug.Log($"[wordDisassociationModule #{_modId}] {message}");
+	}
+	private void Log(string[] message) {
+		foreach(string line in message) {
+			Debug.Log($"[wordDisassociationModule #{_modId}] {line}");
+		}
+	}
 	void Start () {
-		int firstDigit = Bomb.GetSerialNumberNumbers().ElementAt(0) % 5;
-		_solution = _lyrics[firstDigit][Rnd.Range(0, _lyrics[firstDigit].Length)].ToUpper();
-		Debug.Log(_solution);
+		int i = Bomb.GetSerialNumberNumbers().ElementAt(0) % 5;
+		_generatedSolution = _lyrics[i][Rnd.Range(0, _lyrics[i].Length)].ToUpper();
+		_possibleSolutions = new string[] { _generatedSolution, "BRUH" };
+		Log($"Possible solutions: {_possibleSolutions.Join(" ")}");
 	}
-	private bool[5] WordAssociation(string first, string second) {
-		char[] firstArray = first.ToCharArray(); 
-		char[] secondArray = second.ToCharArray(); 
-
-		bool consonantRule = FilterString(first, _consonants) == FilterString(second, _consonants) ? true : false;
-		return { }
+ 	private bool[] WordAssociation(string first, string second) {
+		bool[] Associations = { ConsonantRule(first, second), VowelRule(first, second), FirstLastRule(first, second), SubstringRule(first, second), VowelConsonantPatternRule(first, second) };
+		return Associations;
 	}
 	private bool ConsonantRule(string first, string second) {
 		if (FilterString(first, _consonants) == FilterString(second, _consonants)) { return true; }
 		return false;
 	}
 	private bool VowelRule(string first, string second) {
-		if (FilterString(first, _consonants) == FilterString(second, _consonants)) { return true; }
+		if (FilterString(first, _vowels) == FilterString(second, _vowels)) { return true; }
 		return false;
 	}
 	private bool FirstLastRule(string first, string second) {
-		if ((first.ToCharArray()[0] == second.ToCharArray()[0]) && (first.ToCharArray()[first.Length] == second.ToCharArray()[second.Length])) { return true; }
+		if ((first[0] == second[0]) && (first[first.Length] == second[second.Length])) { return true; }
 		return false;
 	}
 	private bool SubstringRule(string first, string second) {
-		char[] firstArray = first.ToCharArray();
-		char[] secondArray = second.ToCharArray();
+		for (int i = 0; i < first.Length - 2; i++) {
+			for (int j = 0; j < second.Length - 2; j++) {
+				if (first.Substring(i, 3) == second.Substring(j, 3)) { 
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	private bool VowelConsonantPatternRule(string first, string second) {
+		if (first.Length == second.Length) {
+			for (int i = 0; i < first.Length; i++) {
+				if (!(_vowels.Contains(first[i]) == _vowels.Contains(second[i]))) {
+					return false;
+				}
+			}
+			return true;
+		}
 		return false;
 	}
 	private string FilterString(string word, char[] desiredChars) {
 		char[] letters = word.ToCharArray();
-		string filteredString = (string)letters.Where(letter => desiredChars.Contains(letter));
+		string filteredString = letters.Where(letter => desiredChars.Contains(letter)).ToString();
 		return filteredString;
 	}
-	
-}	
 
+#pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"Use !{0} to do something.x";
+#pragma warning restore 414
+
+    // Twitch Plays (TP) documentation: https://github.com/samfundev/KtaneTwitchPlays/wiki/External-Mod-Module-Support
+
+    IEnumerator ProcessTwitchCommand (string Command) {
+        yield return null;
+    }
+
+    IEnumerator TwitchHandleForcedSolve () {
+        yield return null;
+    }
+
+	/* basic support
+    KMSelectable[] ProcessTwitchCommand (string Command) {
+        return null;
+    }
+
+    KMSelectable[] TwitchHandleForcedSolve () {
+        return null;
+    }*/
+}	
